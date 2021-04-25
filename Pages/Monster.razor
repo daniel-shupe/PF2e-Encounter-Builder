@@ -1,0 +1,136 @@
+﻿@page "/Data/Monster"
+
+@using PF2eDataAccess
+@using PF2eDataAccess.Models
+@using PF2e_Encounter_Builder.Models
+
+@inject ISqlDataAccess _db
+@inject IMonsterData _nm
+
+<h3>Add a Monster</h3>
+@if (monsters is null || types is null || families is null || terrains is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="@newMonster" OnValidSubmit="@InsertMonster">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-row">
+            <label for="name" class="col-sm-2 col-form-label">Name:</label>
+            <div class="col-sm-10">
+                <InputText id="monsterName" @bind-Value="newMonster.MonsterName" />
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="name" class="col-sm-2 col-form-label">Level:</label>
+            <div class="col-sm-10">
+                <InputNumber id="level" @bind-Value="newMonster.Level" />
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="type" class="col-sm-2 col-form-label">Type:</label>
+            <div class="col-sm-10">
+                <InputSelect class="form-control" @bind-Value="newMonster.TypeName">
+                    <br />
+                    @foreach (var t in types)
+                        {
+                        <option value=@t.TypeId>@t.Name</option>
+                        }
+                </InputSelect><hr />
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="family" class="col-sm-2 col-form-label">Family:</label>
+            <div class="col-sm-10">
+                <InputSelect class="form-control" @bind-Value="newMonster.FamilyName">
+                    <br />
+                    @foreach (var t in families)
+                        {
+                        <option value=@t.FamilyId>@t.Name</option>
+                        }
+                </InputSelect><hr />
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="terrain" class="col-sm-2 col-form-label">Terrain:</label>
+            <div class="col-sm-10">
+                <InputSelect class="form-control" @bind-Value="newMonster.TerrainName">
+                    <br />
+                    @foreach (var t in terrains)
+                        {
+                        <option value=@t.TerrainId>@t.Name</option>
+                        }
+                </InputSelect><hr />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Monster</button>
+        @foreach (var m in monsters)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <p>@m.MonsterName - @m.Level</p>
+                </div>
+            </div>
+        }
+
+    </EditForm>
+}
+
+@code {
+    private List<MonsterModel> monsters;
+    private List<TerrainModel> terrains;
+    private List<FamilyModel> families;
+    private List<TypeModel> types;
+
+    private DisplayMonsterModel newMonster = new DisplayMonsterModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        monsters = await _nm.GetMonster();
+        string sql = "select * from dbo.Type;";
+        types = await _db.LoadData<TypeModel, dynamic>(sql, new { });
+
+        sql = "select * from dbo.Family;";
+        families = await _db.LoadData<FamilyModel, dynamic>(sql, new { });
+
+        sql = "select * from dbo.Terrain;";
+        terrains = await _db.LoadData<TerrainModel, dynamic>(sql, new { });
+
+    }
+
+    private async Task InsertMonster()
+    {
+        newMonster.TypeId = Int32.Parse(newMonster.TypeName);
+        newMonster.FamilyId = Int32.Parse(newMonster.FamilyName);
+        newMonster.TerrainId = Int32.Parse(newMonster.TerrainName);
+
+
+        MonsterModel m = new MonsterModel
+        {
+            MonsterName = newMonster.MonsterName,
+            Level = newMonster.Level,
+            TypeId = newMonster.TypeId,
+            FamilyId = newMonster.FamilyId,
+            TerrainID = newMonster.TerrainId
+        };
+        //await _nm.InsertMonster(m);
+        string sql = "insert into dbo.Monster (MonsterName, Level, TypeId, FamilyId, TerrainId) values (@MonsterName, @Level, @TypeId, @FamilyId, @TerrainId);";
+        await _db.SaveData<dynamic>(sql, new { MonsterName = m.MonsterName, Level = m.Level, TypeId = m.TypeId, FamilyId = m.FamilyId, TerrainId = m.TerrainID});
+
+        monsters.Add(m);
+    }
+
+    private void Clear()
+    {
+
+        newMonster.MonsterName = "";
+        newMonster.Level = 0;
+        newMonster.FamilyName = "1";
+        newMonster.TerrainName = "1";
+        newMonster.TypeName = "1";
+
+    }
+}
