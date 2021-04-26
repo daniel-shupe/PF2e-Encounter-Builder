@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Pages\Monster.razor" />
+    <Content Remove="Pages\Randomizer.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PF2eDataAccess\PF2eDataAccess.csproj" />
   </ItemGroup>
 

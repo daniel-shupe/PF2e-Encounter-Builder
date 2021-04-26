@@ -94,7 +94,7 @@ else
     private List<LevelModModel> expLevels;
     private List<MonsterModel> encounterMonsters;
     private List<TerrainModel> terrains;
-    private List<TypeModel> types;
+    private List<CreatureTypeModel> types;
     private int ExpThreshhold = 40;
     private int ExpModifier = 10;
     private int difficultyMod = 1;
@@ -112,7 +112,7 @@ else
         sql = "select * from dbo.terrain;";
         terrains = await _db.LoadData<TerrainModel, dynamic>(sql, new { });
         sql = "select * from dbo.type;";
-        types = await _db.LoadData<TypeModel, dynamic>(sql, new { });
+        types = await _db.LoadData<CreatureTypeModel, dynamic>(sql, new { });
     }
 
     private async Task GenerateEncounter()

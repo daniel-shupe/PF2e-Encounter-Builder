@@ -1,0 +1,303 @@
+﻿@page "/random"
+
+@using PF2eDataAccess
+@using PF2eDataAccess.Models
+@using PF2e_Encounter_Builder.Models
+@using Dapper
+
+@inject ISqlDataAccess _db
+
+<h3>Random Encounter Generator</h3>
+
+@if (difficulties is null || monsters is null || expLevels is null || terrains is null || types is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+<EditForm Model="@Encounter" OnValidSubmit="@GenerateEncounter">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-row">
+        <label for="name" class="col-sm-2 col-form-label">Party Size:</label>
+        <div class="col-sm-10">
+            <InputNumber id="players" @bind-Value="@Encounter.Players"></InputNumber>
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="name" class="col-sm-2 col-form-label">Party Level:</label>
+        <div class="col-sm-10">
+            <InputNumber id="level" @bind-Value="@Encounter.Level"></InputNumber>
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="name" class="col-sm-2 col-form-label">Difficulty:</label>
+        <div class="col-sm-10">
+            <Select @onchange="DifficultyAdjustment">
+                @foreach (var d in difficulties)
+                {
+                    <option value="@d.Id">@d.Name</option>
+                }
+            </Select>
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="terrain" class="col-sm-2 col-form-label">Terrain:</label>
+        <div class="col-sm-10">
+            <InputSelect class="form-control" @bind-Value="Encounter.Terrain">
+                <br />
+                <option value="0">ALL</option>
+                @foreach (var t in terrains)
+                    {
+                    <option value=@t.Id>@t.Terrain</option>
+                    }
+            </InputSelect><hr />
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="terrain" class="col-sm-2 col-form-label">Type:</label>
+        <div class="col-sm-10">
+            <InputSelect class="form-control" @bind-Value="Encounter.CreatureType">
+                <br />
+                <option value="0">ALL</option>
+                @foreach (var t in types)
+                    {
+                    <option value=@t.Id>@t.CreatureType</option>
+                    }
+            </InputSelect><hr />
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="terrain" class="col-sm-2 col-form-label">Family:</label>
+        <div class="col-sm-10">
+            <InputSelect class="form-control" @bind-Value="Encounter.Family">
+                <br />
+                <option value="0">ALL</option>
+                @foreach (var f in families)
+                    {
+                    <option value=@f.Id>@f.Family</option>
+                    }
+            </InputSelect><hr />
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="terrain" class="col-sm-2 col-form-label">Alignment:</label>
+        <div class="col-sm-10">
+            <InputSelect class="form-control" @bind-Value="Encounter.Alignment">
+                <br />
+                <option value="0">ALL</option>
+                @foreach (var a in alignments)
+                    {
+                    <option value=@a.Id>@a.Alignment</option>
+                    }
+            </InputSelect><hr />
+        </div>
+    </div>
+
+    <p>XP Value: @ExpThreshhold</p>
+    <button type="submit" class="btn btn-primary">Generate Encounter</button>
+</EditForm>
+    @if (encounterMonsters is null || encounterSet == false)
+    {
+        <p>No monsters in encounter.</p>
+    }
+    else
+    {
+        foreach (var e in encounterMonsters)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <p>@e.Name - @e.CreatureType | @e.Level</p>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    private DisplayEncounterModel Encounter = new DisplayEncounterModel();  //  holds the parameters for encounter generation
+    private List<MonsterModel> monsters;    //  holds the monsters available for the encounter that are within the specified parameters
+    private List<DifficultyModel> difficulties; //  list of the encounter difficulty settings
+    private List<LevelModModel> expLevels;  //  
+    private List<MonsterModel> encounterMonsters;   //  list to hold the monsters that have been added to the random encounter
+    private List<TerrainModel> terrains;    //  list of available terrains. (NOTE: Monsters do not currently have a terrain assigned in the database, so this parameter does not affect encounter generation yet)
+    private List<CreatureTypeModel> types;  //  list of creature types as a paremeter
+    private List<AlignmentModel> alignments;    //  list of alignments as a parameter
+    private List<FamilyModel> families; //  liat of families as a parameter
+    private int ExpThreshhold = 40; //  Exp by difficulty level.  The default value is the lowest amount for an encounter, 40, at trivial.
+    private int ExpModifier = 10;   //  Exp modifier for each party member over/under 4 members
+    private int difficultyMod = 1;  //  Default for difficulty is 1 (Trivial)
+    private bool encounterSet = false;  //  Flag to show if an encounter has been successfully generated
+
+    protected override async Task OnInitializedAsync()
+    {
+        //  retrieve monster list
+        string sql = "select * from dbo.monster;";
+        monsters = await _db.LoadData<MonsterModel, dynamic>(sql, new { });
+        encounterMonsters = monsters;   //  initialize encounterMonsters
+        //  retrieve difficulty list
+        sql = "select * from dbo.difficulty;";
+        difficulties = await _db.LoadData<DifficultyModel, dynamic>(sql, new { });
+        //  retrieve level modifiers
+        sql = "select * from dbo.levelMod;";
+        expLevels = await _db.LoadData<LevelModModel, dynamic>(sql, new { });
+        //  retrieve terrain list
+        sql = "select * from dbo.terrain;";
+        terrains = await _db.LoadData<TerrainModel, dynamic>(sql, new { });
+        //  retrieve creature type list
+        sql = "select * from dbo.creatureType;";
+        types = await _db.LoadData<CreatureTypeModel, dynamic>(sql, new { });
+        //  retrieve alignment list
+        sql = "select * from dbo.alignment;";
+        alignments = await _db.LoadData<AlignmentModel, dynamic>(sql, new { });
+        //  retrieve family list
+        sql = "select * from dbo.family;";
+        families = await _db.LoadData<FamilyModel, dynamic>(sql, new { });
+    }
+
+    private async Task GenerateEncounter()
+    {
+        //  clear encounter monster list
+        encounterMonsters.Clear();
+        //  used for random selection
+        System.Random random = new System.Random();
+        int index = 1;
+        //  deterimine level range for monsters in the encounter (+/- 4 to party level)
+        int level_min;  //  is dependent on party size, since lowest monster is Level -1
+        int level_max = Encounter.Level + (difficultyMod - 1);  //  highest possible monster level is dependant on difficult level selected (ie 'Severe' can have a monster no higher than character level +3)
+        int expBudget = ExpThreshhold;
+        //  variables used to resize monster list
+        int levelCap = level_max;
+        //  calculate exp value of monster
+        int levelDifference;
+        int exp;
+        //  used for sql statement parameters
+        DynamicParameters parameters = new DynamicParameters();
+        int tempId = 0;
+
+        if (Encounter.Level < 3)    //  ensures minimun level is at least -1
+        {
+            level_min = -1;
+        }
+        else
+        {
+            level_min = Encounter.Level - 4;
+        }
+        parameters.Add("@min", level_min, System.Data.DbType.Int32, System.Data.ParameterDirection.Input);
+        parameters.Add("@max", level_max, System.Data.DbType.Int32, System.Data.ParameterDirection.Input);
+        //  retrieve elligible monsters from database
+        string sql = "select * from dbo.Monster where Level between @min and @max";
+        //  terraint not implemented in database table yet
+        /*if (Encounter.Terrain != "" && !(Encounter.Terrain is null))
+        {
+            tempId = Int32.Parse(Encounter.Terrain);
+            TerrainModel terrain = terrains[tempId - 1];
+            sql += " AND Terrain=@terrainId";
+            parameters.Add("@Terrain",terrain.Terrain,System.Data.DbType.String,System.Data.ParameterDirection.Input);
+        }*/
+        //  check for CreatureType parameter and add onto sql statement
+        if (Encounter.CreatureType != "0" && !(Encounter.CreatureType is null))
+        {
+            tempId = Int32.Parse(Encounter.CreatureType);
+            CreatureTypeModel creature = types[tempId-1];
+            sql += " AND creatureType LIKE @creatureTypeId";
+            parameters.Add("@creatureTypeId", creature.CreatureType, System.Data.DbType.String, System.Data.ParameterDirection.Input);
+        }
+        //  check for Family parameter and add onto sql statement
+        if (Encounter.Family != "0" && !(Encounter.Family is null))
+        {
+            tempId = Int32.Parse(Encounter.Family);
+            FamilyModel family = families[tempId - 1];
+            sql += " AND family LIKE @family";
+            parameters.Add("@family", family.Family, System.Data.DbType.String, System.Data.ParameterDirection.Input);
+        }
+        //  check for Alignment parameter and add onto sql statement
+        if (Encounter.Alignment != "0" && !(Encounter.Alignment is null))
+        {
+            tempId = Int32.Parse(Encounter.Alignment);
+            AlignmentModel alignment = alignments[tempId - 1];
+            sql += " AND alignment LIKE @alignment";
+            parameters.Add("@alignment", alignment.Alignment, System.Data.DbType.String, System.Data.ParameterDirection.Input);
+        }
+        //  close sql statement
+        sql += ";";
+        //  execute sql and retrieve monster list based on parameters
+        monsters = await _db.LoadData<MonsterModel, dynamic>(sql, parameters);
+
+
+        //  adjust xp budget for difficulty based on party size
+        if (Encounter.Players < 4)
+        {
+            int diff = 4 - Encounter.Players;
+            expBudget = ExpThreshhold - (diff * ExpModifier);
+        }
+        //  adjust exp budget for irregular party sizes
+        else if (Encounter.Players > 4)
+        {
+            int diff = Encounter.Players - 4;
+            expBudget = ExpThreshhold + (diff * ExpModifier);
+        }
+        //  loop to add monsters
+        while (expBudget >= 10 && monsters.Count > 0)
+        {
+            //  select a random monster and add it to the encounter
+            index = random.Next(monsters.Count);
+            if (index >= 0)  //  prevent index out of range
+            {
+                //  get monster exp cost
+                levelDifference = monsters[index].Level - Encounter.Level; //   difference between monster level and party level
+                LevelModModel level = expLevels.Find(x => x.LevelVariance == levelDifference); //  find exp based on level difference
+                exp = level.ExpVariance;
+                //  ensure selected monster is within budget
+                if (exp <= expBudget)
+                {
+                    //  add monster to encounter
+                    encounterMonsters.Add(monsters[index]);
+                    //  subtract monster from exp budget
+                    expBudget -= exp;
+                }
+                //  remove monsters from pool that would exceed expBudget
+                level = expLevels.FindLast(x => x.ExpVariance <= expBudget);
+                if (level is null)
+                {
+                    expBudget = 0;
+                    break;
+                }
+                //  if not enough experience in budget for another monster, terminate loop
+                levelCap = Encounter.Level + level.LevelVariance;
+                if (levelCap < -1)
+                {
+                    break;
+                }
+                monsters.RemoveAll(m => m.Level > levelCap);
+            }
+            //  index = 0 would cause infinite loop,
+            else
+            {
+                encounterSet = true;
+                break;
+            }
+        }
+        if (encounterMonsters.Count == 0)
+        {
+            encounterSet = false;
+        }
+        else
+        {
+            //  set encounter generated flag
+            encounterSet = true;
+        }
+    }
+
+    //  change xp budget when Difficulty dropdown value is changed
+    private async Task DifficultyAdjustment(ChangeEventArgs e)
+    {
+        string selection = e.Value.ToString();
+        difficultyMod = Int32.Parse(selection);
+        string sql = "select * from dbo.Difficulty where Id = @id;";
+        List<DifficultyModel> dm = await _db.LoadData<DifficultyModel, dynamic>(sql, new { id = difficultyMod });
+        DifficultyModel d = dm.First();
+        ExpThreshhold = d.ExpCap;
+        ExpModifier = d.ExpAdjustment;
+    }
+}

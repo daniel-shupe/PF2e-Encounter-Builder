@@ -83,7 +83,7 @@ else
     private List<MonsterModel> monsters;
     private List<TerrainModel> terrains;
     private List<FamilyModel> families;
-    private List<TypeModel> types;
+    private List<CreatureTypeModel> types;
 
     private DisplayMonsterModel newMonster = new DisplayMonsterModel();
 
@@ -91,7 +91,7 @@ else
     {
         monsters = await _nm.GetMonster();
         string sql = "select * from dbo.Type;";
-        types = await _db.LoadData<TypeModel, dynamic>(sql, new { });
+        types = await _db.LoadData<CreatureTypeModel, dynamic>(sql, new { });
 
         sql = "select * from dbo.Family;";
         families = await _db.LoadData<FamilyModel, dynamic>(sql, new { });
