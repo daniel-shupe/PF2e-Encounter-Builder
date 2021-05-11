@@ -9,116 +9,128 @@
 
 <h3>Random Encounter Generator</h3>
 
+
 @if (difficulties is null || monsters is null || expLevels is null || terrains is null || types is null)
 {
     <p>Loading...</p>
 }
 else
 {
-<EditForm Model="@Encounter" OnValidSubmit="@GenerateEncounter">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="form-row">
-        <label for="name" class="col-sm-2 col-form-label">Party Size:</label>
-        <div class="col-sm-10">
-            <InputNumber id="players" @bind-Value="@Encounter.Players"></InputNumber>
-        </div>
-    </div>
-    <div class="form-row">
-        <label for="name" class="col-sm-2 col-form-label">Party Level:</label>
-        <div class="col-sm-10">
-            <InputNumber id="level" @bind-Value="@Encounter.Level"></InputNumber>
-        </div>
-    </div>
-    <div class="form-row">
-        <label for="name" class="col-sm-2 col-form-label">Difficulty:</label>
-        <div class="col-sm-10">
-            <Select @onchange="DifficultyAdjustment">
-                @foreach (var d in difficulties)
-                {
-                    <option value="@d.Id">@d.Name</option>
-                }
-            </Select>
-        </div>
-    </div>
-    <div class="form-row">
-        <label for="terrain" class="col-sm-2 col-form-label">Terrain:</label>
-        <div class="col-sm-10">
-            <InputSelect class="form-control" @bind-Value="Encounter.Terrain">
-                <br />
-                <option value="0">ALL</option>
-                @foreach (var t in terrains)
-                    {
-                    <option value=@t.Id>@t.Terrain</option>
-                    }
-            </InputSelect><hr />
-        </div>
-    </div>
-    <div class="form-row">
-        <label for="terrain" class="col-sm-2 col-form-label">Type:</label>
-        <div class="col-sm-10">
-            <InputSelect class="form-control" @bind-Value="Encounter.CreatureType">
-                <br />
-                <option value="0">ALL</option>
-                @foreach (var t in types)
-                    {
-                    <option value=@t.Id>@t.CreatureType</option>
-                    }
-            </InputSelect><hr />
-        </div>
-    </div>
-    <div class="form-row">
-        <label for="terrain" class="col-sm-2 col-form-label">Family:</label>
-        <div class="col-sm-10">
-            <InputSelect class="form-control" @bind-Value="Encounter.Family">
-                <br />
-                <option value="0">ALL</option>
-                @foreach (var f in families)
-                    {
-                    <option value=@f.Id>@f.Family</option>
-                    }
-            </InputSelect><hr />
-        </div>
-    </div>
-    <div class="form-row">
-        <label for="terrain" class="col-sm-2 col-form-label">Alignment:</label>
-        <div class="col-sm-10">
-            <InputSelect class="form-control" @bind-Value="Encounter.Alignment">
-                <br />
-                <option value="0">ALL</option>
-                @foreach (var a in alignments)
-                    {
-                    <option value=@a.Id>@a.Alignment</option>
-                    }
-            </InputSelect><hr />
-        </div>
-    </div>
+    <div class="row  vw-100 no-gutters">
+        <div class="col-lg-6 no-gutters">
+            <div class="d-flex ">
+                <EditForm Model="@Encounter" OnValidSubmit="@GenerateEncounter">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group row">
+                        <label for="name" class="col-sm-4 col-form-label">Party Size:</label>
+                        <div class="col-sm-1">
+                            <InputNumber id="players" @bind-Value="@Encounter.Players"></InputNumber>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="name" class="col-sm-4 col-form-label">Party Level:</label>
+                        <div class="col-sm-1">
+                            <InputNumber id="level" @bind-Value="@Encounter.Level"></InputNumber>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="name" class="col-sm-4 col-form-label">Difficulty:</label>
+                        <div class="col-sm-8">
+                            <Select class="form-control" @onchange="DifficultyAdjustment">
+                                @foreach (var d in difficulties)
+                                {
+                                    <option value="@d.Id">@d.Name</option>
+                                }
+                            </Select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="terrain" class="col-sm-4 col-form-label">Terrain:</label>
+                        <div class="col-sm-8">
+                            <InputSelect class="form-control" @bind-Value="Encounter.Terrain">
+                                <br />
+                                <option value="0">ALL</option>
+                                @foreach (var t in terrains)
+                                {
+                                    <option value=@t.Id>@t.Terrain</option>
+                                }
+                            </InputSelect><hr />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="terrain" class="col-sm-4 col-form-label">Type:</label>
+                        <div class="col-sm-8">
+                            <InputSelect class="form-control" @bind-Value="Encounter.CreatureType">
+                                <br />
+                                <option value="0">ALL</option>
+                                @foreach (var t in types)
+                                {
+                                    <option value=@t.Id>@t.CreatureType</option>
+                                }
+                            </InputSelect><hr />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="terrain" class="col-sm-4 col-form-label">Family:</label>
+                        <div class="col-sm-8">
+                            <InputSelect class="form-control" @bind-Value="Encounter.Family">
+                                <br />
+                                <option value="0">ALL</option>
+                                @foreach (var f in families)
+                                {
+                                    <option value=@f.Id>@f.Family</option>
+                                }
+                            </InputSelect><hr />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="terrain" class="col-sm-4 col-form-label">Alignment:</label>
+                        <div class="col-sm-8">
+                            <InputSelect class="form-control" @bind-Value="Encounter.Alignment">
+                                <br />
+                                <option value="0">ALL</option>
+                                @foreach (var a in alignments)
+                                {
+                                    <option value=@a.Id>@a.Alignment</option>
+                                }
+                            </InputSelect><hr />
+                        </div>
+                    </div>
 
-    <p>XP Value: @ExpThreshhold</p>
-    <button type="submit" class="btn btn-primary">Generate Encounter</button>
-</EditForm>
-    @if (encounterMonsters is null || encounterSet == false)
-    {
-        <p>No monsters in encounter.</p>
-    }
-    else
-    {
-        foreach (var e in encounterMonsters)
-        {
-            <div class="card">
-                <div class="card-header">
-                    <p>@e.Name - @e.CreatureType | @e.Level</p>
-                </div>
+                    <p>XP Value: @ExpThreshhold</p>
+                    <button type="submit" class="btn btn-primary">Generate Encounter</button>
+                </EditForm>
             </div>
-        }
-    }
+        </div>
+        <div class="col-lg-6 no-gutters">
+            <div class="w-100 align-content-start">
+                @if (encounterMonsters is null || encounterSet == false)
+                {
+                    <p>No monsters in encounter.</p>
+                }
+                else
+                {
+                    foreach (var e in encounterMonsters)
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <a href="https://2e.aonprd.com/Monsters.aspx?ID=@e.Id" target="_blank">@e.Name</a> - @e.CreatureType     @e.Level
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <p></p>
+    </div>
 }
 
-@code {
-    private DisplayEncounterModel Encounter = new DisplayEncounterModel();  //  holds the parameters for encounter generation
+    @code {
+private DisplayEncounterModel Encounter = new DisplayEncounterModel();  //  holds the parameters for encounter generation
     private List<MonsterModel> monsters;    //  holds the monsters available for the encounter that are within the specified parameters
     private List<DifficultyModel> difficulties; //  list of the encounter difficulty settings
-    private List<LevelModModel> expLevels;  //  
+    private List<LevelModModel> expLevels;  //
     private List<MonsterModel> encounterMonsters;   //  list to hold the monsters that have been added to the random encounter
     private List<TerrainModel> terrains;    //  list of available terrains. (NOTE: Monsters do not currently have a terrain assigned in the database, so this parameter does not affect encounter generation yet)
     private List<CreatureTypeModel> types;  //  list of creature types as a paremeter
@@ -135,7 +147,7 @@ else
         string sql = "select * from dbo.monster;";
         monsters = await _db.LoadData<MonsterModel, dynamic>(sql, new { });
         encounterMonsters = monsters;   //  initialize encounterMonsters
-        //  retrieve difficulty list
+                                        //  retrieve difficulty list
         sql = "select * from dbo.difficulty;";
         difficulties = await _db.LoadData<DifficultyModel, dynamic>(sql, new { });
         //  retrieve level modifiers
@@ -199,7 +211,7 @@ else
         if (Encounter.CreatureType != "0" && !(Encounter.CreatureType is null))
         {
             tempId = Int32.Parse(Encounter.CreatureType);
-            CreatureTypeModel creature = types[tempId-1];
+            CreatureTypeModel creature = types[tempId - 1];
             sql += " AND creatureType LIKE @creatureTypeId";
             parameters.Add("@creatureTypeId", creature.CreatureType, System.Data.DbType.String, System.Data.ParameterDirection.Input);
         }
@@ -300,4 +312,4 @@ else
         ExpThreshhold = d.ExpCap;
         ExpModifier = d.ExpAdjustment;
     }
-}
+    }
